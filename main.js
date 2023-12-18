@@ -5,42 +5,62 @@ var canvas = document.getElementById("canvas"),
     height = canvas.height = window.innerHeight
 
 var points = []
-// Add some random points
-size = 450
-for (let i = 0; i < 1000; i++){
-    let x = (Math.random() * size)
-    let y = (Math.random() * size)
-    points.push({
-        x: x,
-        y: y,
-        oldx: x + Math.random() * 4,
-        oldy: y + Math.random() * 4
-    })
-}
+points.push({
+    x: 100,
+    y: 100,
+    oldx: 80,
+    oldy: 80
+})
+points.push({
+    x: 200,
+    y: 100,
+    oldx: 200,
+    oldy: 100
+})
+points.push({
+    x: 100,
+    y: 200,
+    oldx: 100,
+    oldy: 200
+})
+points.push({
+    x: 200,
+    y: 200,
+    oldx: 200,
+    oldy: 200
+})
 
 var sticks = []
-// Add some random sticks
-for (let i = 0; i < 2000; i++){
-    let index0 = Math.floor(Math.random() * points.length)
-    let index1 = Math.floor(Math.random() * points.length)
-    if (index1 == index0){
-        if (index1 == points.length - 1){
-            index1 -= 1
-        }
-        else{
-            index1 += 1
-        }
-    }
-    sticks.push({
-        p0: points[index0],
-        p1: points[index1],
-        length: distance(points[index0], points[index1])
-    })
-}
+sticks.push({
+    p0: points[0],
+    p1: points[1],
+    length: distance(points[0], points[1])
+})
+sticks.push({
+    p0: points[2],
+    p1: points[3],
+    length: distance(points[2], points[3])
+})
+sticks.push({
+    p0: points[0],
+    p1: points[2],
+    length: distance(points[0], points[2])
+})
+sticks.push({
+    p0: points[1],
+    p1: points[3],
+    length: distance(points[1], points[3])
+})
+sticks.push({
+    p0: points[0],
+    p1: points[3],
+    length: distance(points[0], points[3])
+})
 
 
 var dampening = 0.9 // This is how much energy is preserved in the bounce. 1 = 100%, 0.9 = 90% and so on...
 var friction = 0.999 // This is how much energy is preserved after friction / air resistance.
+var planarFriction = 0.6
 update()
 
 function updatePoints(){
@@ -79,22 +99,38 @@ function constrainPoints(){
             vx = p.x - p.oldx
             p.x = width
             p.oldx = p.x + vx * dampening
+            // Y FRICTION
+            vy = (p.y - p.oldy) * planarFriction
+            p.oldy = p.y
+            p.y += vy
         }
         else if (p.x <= 0){
             vx = p.x - p.oldx
             p.x = 0
             p.oldx = p.x + vx * dampening
+            // Y FRICTION
+            vy = (p.y - p.oldy) * planarFriction
+            p.oldy = p.y
+            p.y += vy
         }
         // Y screen constraints
         else if (p.y >= height){
             vy = p.y - p.oldy
             p.y = height
             p.oldy = p.y + vy * dampening
+            // X FRICTION
+            vx = (p.x - p.oldx) * planarFriction
+            p.oldx = p.x
+            p.x += vx
         }
         else if (p.y <= 0){
             vy = p.y - p.oldy
             p.y = 0
             p.oldy = p.y + vy * dampening
+            // X FRICTION
+            vx = (p.x - p.oldx) * planarFriction
+            p.oldx = p.x
+            p.x += vx
         }
     }
 }
@@ -136,7 +172,7 @@ function renderSticks(){
 
 function update(){
     updatePoints()
-    let maxIterations = 5
+    let maxIterations = 99999
     for (i = 0; i < maxIterations; i++){
         updateSticks()
         constrainPoints()
